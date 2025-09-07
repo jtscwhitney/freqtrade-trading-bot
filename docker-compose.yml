@@ -1,0 +1,36 @@
+
+
+services:
+  freqtrade:
+    image: ghcr.io/freqtrade/freqtrade:stable
+    container_name: freqtrade
+    restart: unless-stopped
+    ports:
+      - "8080:8080"  # Web interface and API server
+    volumes:
+      - ./user_data:/freqtrade/user_data
+      - ./config:/freqtrade/config
+      - ./logs:/freqtrade/logs
+    environment:
+      - FT_PROVIDER=ccxt
+    command: >
+      trade
+      --strategy BollingerBandsStrategyV9
+      --config /freqtrade/config/config.json
+      --dry-run-wallet 0
+      --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
+      --logfile /freqtrade/logs/freqtrade.log
+      --userdir /freqtrade/user_data
+    networks:
+      - freqtrade_network
+
+
+
+networks:
+  freqtrade_network:
+    driver: bridge
+
+volumes:
+  user_data:
+  logs:
+
