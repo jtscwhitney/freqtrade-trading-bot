@@ -251,6 +251,64 @@ class BollingerBandsStrategyV9(IStrategy):
         dataframe['enter_short'] = False
         dataframe['enter_tag'] = ''
         
+        # Log detailed information for each candle to help debug trading decisions
+        for i in range(len(dataframe)):
+            if i < len(dataframe) - 1:  # Skip the last candle as it might not have complete data
+                continue
+                
+            current_candle = dataframe.iloc[i]
+            
+            # Skip if we don't have valid indicator data
+            if not all(pd.notna(current_candle[col]) for col in ['ema', 'bb_upperband', 'bb_lowerband', 'mfi', 'atr']):
+                continue
+            
+            # Log current candle data
+            logger.info(f"=== CANDLE ANALYSIS FOR {metadata['pair']} ===")
+            logger.info(f"Timestamp: {current_candle.name}")
+            logger.info(f"OHLC: O={current_candle['open']:.4f}, H={current_candle['high']:.4f}, L={current_candle['low']:.4f}, C={current_candle['close']:.4f}")
+            logger.info(f"Volume: {current_candle['volume']:.2f}")
+            
+            # Log indicator values
+            logger.info(f"INDICATORS:")
+            logger.info(f"  EMA({self.ema_length.value}): {current_candle['ema']:.4f}")
+            logger.info(f"  BB Upper: {current_candle['bb_upperband']:.4f}")
+            logger.info(f"  BB Middle: {current_candle['bb_middleband']:.4f}")
+            logger.info(f"  BB Lower: {current_candle['bb_lowerband']:.4f}")
+            logger.info(f"  MFI({self.mfi_length.value}): {current_candle['mfi']:.2f}")
+            logger.info(f"  ATR({self.atr_length.value}): {current_candle['atr']:.4f}")
+            
+            # Log condition checks for SELL signal
+            logger.info(f"SELL SIGNAL CONDITIONS:")
+            bb_upper_vs_ema = current_candle['bb_upper_vs_ema']
+            high_above_ema = current_candle['high_above_ema']
+            close_above_bb_upper = current_candle['close'] > current_candle['bb_upperband']
+            mfi_overbought = current_candle['mfi'] > self.overbought_min_mfi.value
+            
+            logger.info(f"  BB Upper < EMA: {bb_upper_vs_ema} (BB Upper: {current_candle['bb_upperband']:.4f} < EMA: {current_candle['ema']:.4f})")
+            logger.info(f"  Candle High < EMA: {not high_above_ema} (High: {current_candle['high']:.4f} < EMA: {current_candle['ema']:.4f})")
+            logger.info(f"  Close > BB Upper: {close_above_bb_upper} (Close: {current_candle['close']:.4f} > BB Upper: {current_candle['bb_upperband']:.4f})")
+            logger.info(f"  MFI > {self.overbought_min_mfi.value}: {mfi_overbought} (MFI: {current_candle['mfi']:.2f})")
+            
+            sell_signal = bb_upper_vs_ema and not high_above_ema and close_above_bb_upper and mfi_overbought
+            logger.info(f"  SELL SIGNAL RESULT: {sell_signal}")
+            
+            # Log condition checks for BUY signal
+            logger.info(f"BUY SIGNAL CONDITIONS:")
+            bb_lower_vs_ema = current_candle['bb_lower_vs_ema']
+            low_below_ema = current_candle['low_below_ema']
+            close_below_bb_lower = current_candle['close'] < current_candle['bb_lowerband']
+            mfi_oversold = current_candle['mfi'] < self.oversold_max_mfi.value
+            
+            logger.info(f"  BB Lower > EMA: {bb_lower_vs_ema} (BB Lower: {current_candle['bb_lowerband']:.4f} > EMA: {current_candle['ema']:.4f})")
+            logger.info(f"  Candle Low > EMA: {not low_below_ema} (Low: {current_candle['low']:.4f} > EMA: {current_candle['ema']:.4f})")
+            logger.info(f"  Close < BB Lower: {close_below_bb_lower} (Close: {current_candle['close']:.4f} < BB Lower: {current_candle['bb_lowerband']:.4f})")
+            logger.info(f"  MFI < {self.oversold_max_mfi.value}: {mfi_oversold} (MFI: {current_candle['mfi']:.2f})")
+            
+            buy_signal = bb_lower_vs_ema and not low_below_ema and close_below_bb_lower and mfi_oversold
+            logger.info(f"  BUY SIGNAL RESULT: {buy_signal}")
+            
+            logger.info(f"=== END CANDLE ANALYSIS ===\n")
+        
         # Sell signal conditions (from TypeScript logic)
         sell_conditions = (
             # BB upper is below EMA
@@ -282,6 +340,19 @@ class BollingerBandsStrategyV9(IStrategy):
         dataframe.loc[buy_conditions, 'enter_long'] = True
         dataframe.loc[buy_conditions, 'enter_tag'] = 'bb_buy'
         
+        # Log signal summary for the last candle
+        if len(dataframe) > 0:
+            last_candle = dataframe.iloc[-1]
+            has_buy_signal = last_candle.get('enter_long', False)
+            has_sell_signal = last_candle.get('enter_short', False)
+            
+            if not has_buy_signal and not has_sell_signal:
+                logger.info(f"NO SIGNALS GENERATED for {metadata['pair']} - All conditions not met")
+            elif has_buy_signal:
+                logger.info(f"BUY SIGNAL GENERATED for {metadata['pair']} - Tag: {last_candle.get('enter_tag', 'unknown')}")
+            elif has_sell_signal:
+                logger.info(f"SELL SIGNAL GENERATED for {metadata['pair']} - Tag: {last_candle.get('enter_tag', 'unknown')}")
+        
         return dataframe
     
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -304,6 +375,7 @@ class BollingerBandsStrategyV9(IStrategy):
         # Get current dataframe
         df, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
         if df.empty:
+            logger.warning(f"No dataframe available for {pair} in custom_stoploss")
             return self.stoploss
             
         # Get the last candle
@@ -311,33 +383,64 @@ class BollingerBandsStrategyV9(IStrategy):
         
         # Check if we have all required indicators
         if not all(pd.notna(last_candle[col]) for col in ['atr_lower', 'atr_upper', 'bb_middleband']):
+            logger.warning(f"Missing indicator data for {pair} in custom_stoploss")
             return self.stoploss
+        
+        # Log detailed stop loss calculation
+        logger.info(f"=== STOP LOSS CALCULATION FOR {pair} ===")
+        logger.info(f"Trade ID: {trade.id}")
+        logger.info(f"Trade Side: {'SHORT' if trade.is_short else 'LONG'}")
+        logger.info(f"Entry Price: {trade.open_rate:.4f}")
+        logger.info(f"Current Rate: {current_rate:.4f}")
+        logger.info(f"Current Profit: {current_profit:.4f} ({current_profit*100:.2f}%)")
+        logger.info(f"Current Stop Loss: {trade.stop_loss:.4f}")
+        
+        logger.info(f"INDICATOR VALUES:")
+        logger.info(f"  ATR Lower: {last_candle['atr_lower']:.4f}")
+        logger.info(f"  ATR Upper: {last_candle['atr_upper']:.4f}")
+        logger.info(f"  BB Middle: {last_candle['bb_middleband']:.4f}")
+        logger.info(f"  ATR: {last_candle['atr']:.4f}")
+        logger.info(f"  Risk Factor: {self.risk_factor.value}")
         
         # Calculate dynamic stop loss based on trade side
         if trade.is_short:
+            logger.info(f"SHORT POSITION STOP LOSS LOGIC:")
             # For short positions, use ATR upper or BB middle, whichever is lower
             if last_candle['atr_upper'] <= last_candle['bb_middleband']:
+                logger.info(f"  ATR Upper ({last_candle['atr_upper']:.4f}) <= BB Middle ({last_candle['bb_middleband']:.4f})")
                 if last_candle['atr_upper'] <= trade.stop_loss:
                     new_stop_loss = last_candle['atr_upper']
+                    logger.info(f"  Using ATR Upper as new stop loss: {new_stop_loss:.4f}")
                 else:
                     new_stop_loss = trade.stop_loss
+                    logger.info(f"  Keeping current stop loss: {new_stop_loss:.4f}")
             else:
+                logger.info(f"  BB Middle ({last_candle['bb_middleband']:.4f}) < ATR Upper ({last_candle['atr_upper']:.4f})")
                 if last_candle['bb_middleband'] <= trade.stop_loss:
                     new_stop_loss = last_candle['bb_middleband']
+                    logger.info(f"  Using BB Middle as new stop loss: {new_stop_loss:.4f}")
                 else:
                     new_stop_loss = trade.stop_loss
+                    logger.info(f"  Keeping current stop loss: {new_stop_loss:.4f}")
         else:
+            logger.info(f"LONG POSITION STOP LOSS LOGIC:")
             # For long positions, use ATR lower or BB middle, whichever is higher
             if last_candle['atr_lower'] >= last_candle['bb_middleband']:
+                logger.info(f"  ATR Lower ({last_candle['atr_lower']:.4f}) >= BB Middle ({last_candle['bb_middleband']:.4f})")
                 if last_candle['atr_lower'] >= trade.stop_loss:
                     new_stop_loss = last_candle['atr_lower']
+                    logger.info(f"  Using ATR Lower as new stop loss: {new_stop_loss:.4f}")
                 else:
                     new_stop_loss = trade.stop_loss
+                    logger.info(f"  Keeping current stop loss: {new_stop_loss:.4f}")
             else:
+                logger.info(f"  BB Middle ({last_candle['bb_middleband']:.4f}) > ATR Lower ({last_candle['atr_lower']:.4f})")
                 if last_candle['bb_middleband'] >= trade.stop_loss:
                     new_stop_loss = last_candle['bb_middleband']
+                    logger.info(f"  Using BB Middle as new stop loss: {new_stop_loss:.4f}")
                 else:
                     new_stop_loss = trade.stop_loss
+                    logger.info(f"  Keeping current stop loss: {new_stop_loss:.4f}")
         
         # Convert to relative stop loss
         if trade.is_short:
@@ -346,9 +449,15 @@ class BollingerBandsStrategyV9(IStrategy):
             stop_loss_pct = (new_stop_loss - current_rate) / current_rate
         
         # Ensure stop loss is not too tight
+        original_stop_loss_pct = stop_loss_pct
         stop_loss_pct = max(stop_loss_pct, -0.05)  # Minimum 5% stop loss
         
-        logger.info(f"Custom stop loss for {pair}: {stop_loss_pct:.4f} (rate: {current_rate}, stop: {new_stop_loss})")
+        logger.info(f"STOP LOSS CALCULATION:")
+        logger.info(f"  New Stop Loss Price: {new_stop_loss:.4f}")
+        logger.info(f"  Original Stop Loss %: {original_stop_loss_pct:.4f} ({original_stop_loss_pct*100:.2f}%)")
+        logger.info(f"  Final Stop Loss %: {stop_loss_pct:.4f} ({stop_loss_pct*100:.2f}%)")
+        logger.info(f"  Stop Loss Adjusted: {'Yes' if original_stop_loss_pct != stop_loss_pct else 'No'}")
+        logger.info(f"=== END STOP LOSS CALCULATION ===\n")
         
         return stop_loss_pct
     
@@ -389,6 +498,7 @@ class BollingerBandsStrategyV9(IStrategy):
         # Get current dataframe
         df, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
         if df.empty:
+            logger.warning(f"No dataframe available for {pair} in confirm_trade_entry")
             return False
             
         last_candle = df.iloc[-1].squeeze()
@@ -398,8 +508,36 @@ class BollingerBandsStrategyV9(IStrategy):
             logger.warning(f"Missing indicators for {pair}, skipping trade")
             return False
         
-        # Log trade confirmation
-        logger.info(f"Trade confirmed for {pair}: {side} at {rate} (tag: {entry_tag})")
+        # Log detailed trade entry confirmation
+        logger.info(f"=== TRADE ENTRY CONFIRMATION FOR {pair} ===")
+        logger.info(f"Side: {side}")
+        logger.info(f"Entry Price: {rate:.4f}")
+        logger.info(f"Amount: {amount:.8f}")
+        logger.info(f"Order Type: {order_type}")
+        logger.info(f"Entry Tag: {entry_tag}")
+        logger.info(f"Time: {current_time}")
+        
+        logger.info(f"ENTRY CONDITIONS AT TIME OF TRADE:")
+        logger.info(f"  Close Price: {last_candle['close']:.4f}")
+        logger.info(f"  EMA: {last_candle['ema']:.4f}")
+        logger.info(f"  BB Upper: {last_candle['bb_upperband']:.4f}")
+        logger.info(f"  BB Middle: {last_candle['bb_middleband']:.4f}")
+        logger.info(f"  BB Lower: {last_candle['bb_lowerband']:.4f}")
+        logger.info(f"  MFI: {last_candle['mfi']:.2f}")
+        logger.info(f"  ATR: {last_candle['atr']:.4f}")
+        
+        if side == 'long':
+            logger.info(f"  BB Lower > EMA: {last_candle['bb_lower_vs_ema']}")
+            logger.info(f"  Candle Low > EMA: {not last_candle['low_below_ema']}")
+            logger.info(f"  Close < BB Lower: {last_candle['close'] < last_candle['bb_lowerband']}")
+            logger.info(f"  MFI < {self.oversold_max_mfi.value}: {last_candle['mfi'] < self.oversold_max_mfi.value}")
+        else:
+            logger.info(f"  BB Upper < EMA: {last_candle['bb_upper_vs_ema']}")
+            logger.info(f"  Candle High < EMA: {not last_candle['high_above_ema']}")
+            logger.info(f"  Close > BB Upper: {last_candle['close'] > last_candle['bb_upperband']}")
+            logger.info(f"  MFI > {self.overbought_min_mfi.value}: {last_candle['mfi'] > self.overbought_min_mfi.value}")
+        
+        logger.info(f"=== TRADE ENTRY CONFIRMED ===\n")
         
         return True
     
@@ -409,7 +547,44 @@ class BollingerBandsStrategyV9(IStrategy):
         """
         Additional confirmation before trade exit
         """
-        logger.info(f"Trade exit confirmed for {pair}: {exit_reason} at {rate}")
+        # Get current dataframe for exit analysis
+        df, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
+        last_candle = df.iloc[-1].squeeze() if not df.empty else None
+        
+        # Log detailed trade exit confirmation
+        logger.info(f"=== TRADE EXIT CONFIRMATION FOR {pair} ===")
+        logger.info(f"Trade ID: {trade.id}")
+        logger.info(f"Trade Side: {'SHORT' if trade.is_short else 'LONG'}")
+        logger.info(f"Entry Price: {trade.open_rate:.4f}")
+        logger.info(f"Exit Price: {rate:.4f}")
+        logger.info(f"Amount: {amount:.8f}")
+        logger.info(f"Exit Reason: {exit_reason}")
+        logger.info(f"Order Type: {order_type}")
+        logger.info(f"Time: {current_time}")
+        
+        # Calculate trade performance
+        if trade.is_short:
+            profit_pct = (trade.open_rate - rate) / trade.open_rate
+        else:
+            profit_pct = (rate - trade.open_rate) / trade.open_rate
+        
+        logger.info(f"TRADE PERFORMANCE:")
+        logger.info(f"  Profit/Loss: {profit_pct:.4f} ({profit_pct*100:.2f}%)")
+        logger.info(f"  Trade Duration: {current_time - trade.open_date}")
+        
+        if last_candle is not None:
+            logger.info(f"EXIT CONDITIONS AT TIME OF EXIT:")
+            logger.info(f"  Close Price: {last_candle['close']:.4f}")
+            logger.info(f"  EMA: {last_candle['ema']:.4f}")
+            logger.info(f"  BB Upper: {last_candle['bb_upperband']:.4f}")
+            logger.info(f"  BB Middle: {last_candle['bb_middleband']:.4f}")
+            logger.info(f"  BB Lower: {last_candle['bb_lowerband']:.4f}")
+            logger.info(f"  MFI: {last_candle['mfi']:.2f}")
+            logger.info(f"  ATR: {last_candle['atr']:.4f}")
+            logger.info(f"  Stop Loss: {trade.stop_loss:.4f}")
+        
+        logger.info(f"=== TRADE EXIT CONFIRMED ===\n")
+        
         return True
     
     def custom_entry_price(self, pair: str, current_time: datetime, proposed_rate: float,

@@ -17,7 +17,7 @@ services:
       trade
       --strategy BollingerBandsStrategyV9
       --config /freqtrade/config/config.json
-      --dry-run-wallet 0
+      --dry-run
       --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
       --logfile /freqtrade/logs/freqtrade.log
       --userdir /freqtrade/user_data
