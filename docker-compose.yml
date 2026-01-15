@@ -2,7 +2,7 @@
 
 services:
   freqtrade:
-    image: ghcr.io/freqtrade/freqtrade:stable
+    build: .
     container_name: freqtrade
     restart: unless-stopped
     ports:
