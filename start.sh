@@ -38,9 +38,8 @@ if [ $? -eq 0 ]; then
     echo "Services started successfully!"
     echo
     echo "Access points:"
-    echo "- Trading Bot: http://localhost:8080"
-    echo "- Web Interface: http://localhost:8081"
-    echo "- API Server: http://localhost:9001"
+    echo "- Freqtrade API/WebUI: http://localhost:8080"
+    echo "- Log download API:   http://localhost:8081/api/v1/logs/download"
     echo
     echo "To view logs: docker-compose logs -f"
     echo "To stop services: docker-compose down"

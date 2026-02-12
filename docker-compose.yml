@@ -1,4 +1,21 @@
 services:
+  log_api:
+    build:
+      context: .
+      dockerfile: log_api_Dockerfile
+    container_name: freqtrade_log_api
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./user_data:/freqtrade/user_data
+    environment:
+      - LOG_FILE=/freqtrade/user_data/logs/freqtrade.log
+      - FREQTRADE_API_USERNAME=${FREQTRADE_API_USERNAME:-freqtrader}
+      - FREQTRADE_API_PASSWORD=${FREQTRADE_API_PASSWORD:-SuperSecurePassword123}
+    networks:
+      - freqtrade_network
+
   freqtrade:
     build: .
     container_name: freqtrade

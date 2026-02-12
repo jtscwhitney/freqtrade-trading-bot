@@ -1,6 +1,7 @@
 # Freqtrade specific ignores
 user_data/data/
 user_data/logs/
+user_data/models/
 user_data/backtest_results/
 user_data/hyperopt_results/
 user_data/plot/
