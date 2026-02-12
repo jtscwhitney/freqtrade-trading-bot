@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oracle Signal Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+        .signal-box {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+        .signal-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .signal-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: 600;
+            color: #555;
+            font-size: 1.1em;
+        }
+        .value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .regime-bull {
+            color: #28a745;
+            font-size: 2em;
+        }
+        .regime-bear {
+            color: #dc3545;
+            font-size: 2em;
+        }
+        .regime-neutral {
+            color: #ffc107;
+            font-size: 2em;
+        }
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.9em;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .loading {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+        .error {
+            color: #dc3545;
+            text-align: center;
+            padding: 20px;
+            background: #f8d7da;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 Oracle Signal Dashboard</h1>
+        <div id="signal-container">
+            <div class="loading">Loading Oracle signal...</div>
+        </div>
+        <button class="refresh-btn" onclick="loadOracleSignal()">🔄 Refresh Signal</button>
+        <div class="timestamp" id="last-update"></div>
+    </div>
+
+    <script>
+        function getRegimeClass(regime) {
+            if (regime === 'BULL') return 'regime-bull';
+            if (regime === 'BEAR') return 'regime-bear';
+            return 'regime-neutral';
+        }
+
+        function getRegimeEmoji(regime) {
+            if (regime === 'BULL') return '📈';
+            if (regime === 'BEAR') return '📉';
+            return '➡️';
+        }
+
+        function getRegimeInterpretation(regime) {
+            if (regime === 'BULL') return 'BULLISH - Oracle predicts upward movement';
+            if (regime === 'BEAR') return 'BEARISH - Oracle predicts downward movement';
+            return 'NEUTRAL - Oracle predicts sideways movement';
+        }
+
+        async function loadOracleSignal() {
+            const container = document.getElementById('signal-container');
+            const lastUpdate = document.getElementById('last-update');
+            
+            container.innerHTML = '<div class="loading">Loading Oracle signal...</div>';
+            
+            try {
+                // Call Python script via subprocess or fetch from API
+                // For now, we'll use a simple approach - you can enhance this
+                const response = await fetch('http://localhost:8080/api/v1/ping');
+                
+                // Since we can't directly call Python from browser, 
+                // we'll need to either:
+                // 1. Create an API endpoint that serves Oracle data
+                // 2. Use the log file reading script via a backend service
+                // 3. Display instructions for now
+                
+                container.innerHTML = `
+                    <div class="signal-box">
+                        <div class="signal-row">
+                            <span class="label">Status:</span>
+                            <span class="value" style="color: #28a745;">API Connected</span>
+                        </div>
+                        <div class="signal-row">
+                            <span class="label">Note:</span>
+                            <span class="value" style="font-size: 0.9em; color: #6c757d;">
+                                Oracle signals are not directly available via API.<br>
+                                Use the Python script: <code>python get_oracle_signal.py</code>
+                            </span>
+                        </div>
+                    </div>
+                `;
+                
+                lastUpdate.textContent = `Last checked: ${new Date().toLocaleString()}`;
+                
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="error">
+                        Error loading signal. Make sure:<br>
+                        1. Bot is running<br>
+                        2. API is accessible at http://localhost:8080<br>
+                        3. Run: <code>python get_oracle_signal.py</code> for current signal
+                    </div>
+                `;
+            }
+        }
+
+        // Load on page load
+        loadOracleSignal();
+        
+        // Auto-refresh every 60 seconds
+        setInterval(loadOracleSignal, 60000);
+    </script>
+</body>
+</html>

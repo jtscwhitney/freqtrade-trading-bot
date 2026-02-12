@@ -1,36 +1,45 @@
-
-
 services:
   freqtrade:
     build: .
     container_name: freqtrade
     restart: unless-stopped
+    
+    # --- PORTS ---
+    # 8080: API/WebUI
+    # 5555: ZMQ (The "Mouth" for the Sniper)
     ports:
-      - "8080:8080"  # Web interface and API server
+      - "8080:8080"
+      - "5555:5555"
+
+    # --- VOLUMES ---
+    # Mapping specific folders makes it easier to find files on your Windows machine
     volumes:
       - ./user_data:/freqtrade/user_data
       - ./config:/freqtrade/config
-      - ./logs:/freqtrade/logs
+      # Note: Logs are stored in user_data/logs for consistency
+      # The --logfile parameter below uses /freqtrade/user_data/logs/freqtrade.log
+
+    # --- ENVIRONMENT ---
     environment:
       - FT_PROVIDER=ccxt
+
+    # --- COMMAND ---
+    # Default command when using: docker compose run --rm --service-ports freqtrade
+    # Matches config_sniper_BTC_DryRun.json settings
+    # Note: Config file has logfile_count: 10 (keeps 10 rotated files instead of default 3)
     command: >
       trade
-      --strategy BollingerBandsStrategyV9
-      --config /freqtrade/config/config.json
-      --dry-run
+      --config /freqtrade/user_data/config_sniper_BTC_DryRun.json
+      --strategy OracleSurfer_v12_PROD
+      --freqaimodel XGBoostClassifier
       --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
-      --logfile /freqtrade/logs/freqtrade.log
+      --logfile /freqtrade/user_data/logs/freqtrade.log
       --userdir /freqtrade/user_data
+      -v
+
     networks:
       - freqtrade_network
-
-
 
 networks:
   freqtrade_network:
     driver: bridge
-
-volumes:
-  user_data:
-  logs:
-

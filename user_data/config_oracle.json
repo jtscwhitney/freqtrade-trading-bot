@@ -45,9 +45,9 @@
     "freqai": {
         "enabled": true,
         "purge_old_models": true,
-        "train_period_days": 30,
-        "backtest_period_days": 7,
-        "identifier": "Regime_Oracle_v1",
+        "train_period_days": 365,
+        "backtest_period_days": 30,
+        "identifier": "Regime_Oracle_v6_Prod",
         "feature_parameters": {
             "include_timeframes": [
                 "4h"
@@ -57,8 +57,9 @@
             "include_shifted_candles": 0,
             "indicator_periods_candles": [
                 10,
-                14,
-                20
+                20,
+                100,
+                200
             ],
             "plot_feature_importances": 0
         },
@@ -70,8 +71,13 @@
             "n_estimators": 100,
             "learning_rate": 0.1,
             "max_depth": 6,
-            "n_jobs": 4
-        }
+            "n_jobs": 1
+        },
+        "live_retrain_hours": 0,
+        "expiration_hours": 0,
+        "save_backtest_models": true,
+        "continual_learning": false,
+        "wait_for_training_iteration_on_reload": true
     },
     "pairlists": [
         {
