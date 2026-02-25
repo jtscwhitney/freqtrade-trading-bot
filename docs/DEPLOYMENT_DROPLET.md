@@ -65,15 +65,24 @@ Edit `user_data/config_sniper_BTC_DryRun.json` and add your Binance API key and 
 
 Do this only when moving from dry-run to live. Never commit these to git.
 
-## Step 4: Deploy
+## Step 4: Fix permissions (required on Linux)
+
+The Freqtrade container runs as user `ftuser` (UID 1000) and needs write access to `user_data`:
 
 ```bash
 cd /opt/freqtrade
+chown -R 1000:1000 user_data
+chmod -R 755 user_data
+```
+
+## Step 5: Deploy
+
+```bash
 chmod +x deploy/deploy.sh
 ./deploy/deploy.sh
 ```
 
-## Step 5: Verify
+## Step 6: Verify
 
 - **Freqtrade API**: `http://YOUR_DROPLET_IP:8080` (login with API credentials)
 - **Log download**: `http://YOUR_DROPLET_IP:8081/api/v1/logs/download` (Basic Auth)
