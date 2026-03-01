@@ -1,5 +1,5 @@
 # Start from the FreqAI-ready image
-FROM freqtradeorg/freqtrade:stable_freqai
+FROM freqtradeorg/freqtrade:stable_freqairl
 
 # Switch to root user to install packages
 USER root
