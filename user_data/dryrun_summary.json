@@ -1,0 +1,212 @@
+{
+"bot_status":
+{
+  "state": "running",
+  "strategy": "OracleSurfer_v12_PROD",
+  "dry_run": true,
+  "timeframe": "1h",
+  "stake_amount": "unlimited",
+  "max_open_trades": 3.0,
+  "bot_name": "freqtrade",
+  "freqai_enabled": null,
+  "freqai_identifier": null
+}
+,
+"profit_summary":
+{
+  "profit_all_coin": -81.20119616,
+  "profit_all_percent": -8.2,
+  "profit_all_percent_mean": -3.65,
+  "profit_factor": 0.3100736404092173,
+  "winning_trades": 4,
+  "losing_trades": 4,
+  "draw_trades": null,
+  "winrate": 0.5,
+  "expectancy": -10.150149520000001,
+  "expectancy_ratio": -0.3449631797953914,
+  "sharpe": -2.3598694401455034,
+  "sortino": -22.311603083697996,
+  "calmar": -42.663868265562456,
+  "max_drawdown": 0.10802754776916533,
+  "max_drawdown_abs": 109.06970374000001,
+  "trade_count": 8,
+  "first_trade_date": "2026-02-25 02:00:07",
+  "latest_trade_date": "2026-03-31 02:00:08",
+  "avg_duration": "3 days, 7:46:45",
+  "best_pair": "BTC/USDT:USDT",
+  "worst_pair": null,
+  "profit_closed_coin": -81.20119616,
+  "profit_closed_percent": -8.2,
+  "profit_closed_percent_mean": -3.65,
+  "closed_trade_count": 8,
+  "open_trade_count": null,
+  "bot_start_date": "2026-02-22 18:17:14",
+  "bot_start_timestamp": 1771784234637
+}
+,
+"performance":
+[
+  {
+    "profit_ratio": -0.03424698450043116,
+    "profit_pct": -3.42,
+    "profit_abs": -81.20119616000001,
+    "count": 8,
+    "pair": "BTC/USDT:USDT",
+    "profit": -3.42
+  }
+]
+,
+"exit_reasons":
+{
+  "trailing_stop_loss": {
+    "count": 4,
+    "avg_profit_pct": 2.9775,
+    "total_profit_pct": 11.91
+  },
+  "stop_loss": {
+    "count": 4,
+    "avg_profit_pct": -10.2725,
+    "total_profit_pct": -41.09
+  }
+}
+,
+"open_trades":
+[]
+,
+"recent_closed_trades":
+[
+  {
+    "trade_id": 1,
+    "pair": "BTC/USDT:USDT",
+    "open_date": "2026-02-25 02:00:07",
+    "close_date": "2026-02-25 16:50:48",
+    "open_rate": 65945.1,
+    "close_rate": 67992.4,
+    "profit_pct": 2.9,
+    "profit_abs": 9.56996626,
+    "exit_reason": "trailing_stop_loss",
+    "enter_tag": "",
+    "is_short": false
+  },
+  {
+    "trade_id": 2,
+    "pair": "BTC/USDT:USDT",
+    "open_date": "2026-02-28 00:00:13",
+    "close_date": "2026-02-28 06:36:58",
+    "open_rate": 65834.9,
+    "close_rate": 63692.6,
+    "profit_pct": 3.06,
+    "profit_abs": 10.07716535,
+    "exit_reason": "trailing_stop_loss",
+    "enter_tag": "",
+    "is_short": true
+  },
+  {
+    "trade_id": 3,
+    "pair": "BTC/USDT:USDT",
+    "open_date": "2026-02-28 07:00:12",
+    "close_date": "2026-03-02 15:39:37",
+    "open_rate": 63047.8,
+    "close_rate": 69338.4,
+    "profit_pct": -10.2,
+    "profit_abs": -32.12534724,
+    "exit_reason": "stop_loss",
+    "enter_tag": "",
+    "is_short": true
+  },
+  {
+    "trade_id": 4,
+    "pair": "BTC/USDT:USDT",
+    "open_date": "2026-03-03 10:00:07",
+    "close_date": "2026-03-04 15:57:58",
+    "open_rate": 66545.0,
+    "close_rate": 73233.1,
+    "profit_pct": -10.27,
+    "profit_abs": -27.31522346,
+    "exit_reason": "stop_loss",
+    "enter_tag": "",
+    "is_short": true
+  },
+  {
+    "trade_id": 5,
+    "pair": "BTC/USDT:USDT",
+    "open_date": "2026-03-08 19:00:08",
+    "close_date": "2026-03-13 13:55:28",
+    "open_rate": 66803.3,
+    "close_rate": 73519.6,
+    "profit_pct": -10.33,
+    "profit_abs": -27.57688662,
+    "exit_reason": "stop_loss",
+    "enter_tag": "",
+    "is_short": true
+  },
+  {
+    "trade_id": 6,
+    "pair": "BTC/USDT:USDT",
+    "open_date": "2026-03-16 08:00:14",
+    "close_date": "2026-03-17 01:13:23",
+    "open_rate": 73475.8,
+    "close_rate": 75788.4,
+    "profit_pct": 2.93,
+    "profit_abs": 8.62575032,
+    "exit_reason": "trailing_stop_loss",
+    "enter_tag": "",
+    "is_short": false
+  },
+  {
+    "trade_id": 7,
+    "pair": "BTC/USDT:USDT",
+    "open_date": "2026-03-17 04:00:13",
+    "close_date": "2026-03-27 10:38:43",
+    "open_rate": 74487.4,
+    "close_rate": 66949.9,
+    "profit_pct": -10.29,
+    "profit_abs": -30.67799674,
+    "exit_reason": "stop_loss",
+    "enter_tag": "",
+    "is_short": false
+  },
+  {
+    "trade_id": 8,
+    "pair": "BTC/USDT:USDT",
+    "open_date": "2026-03-31 02:00:08",
+    "close_date": "2026-04-06 09:22:32",
+    "open_rate": 67915.4,
+    "close_rate": 70121.2,
+    "profit_pct": 3.02,
+    "profit_abs": 8.22137597,
+    "exit_reason": "trailing_stop_loss",
+    "enter_tag": "",
+    "is_short": false
+  }
+]
+,
+"freqai_info":
+{
+  "detail": "Not Found"
+}
+,
+"balance":
+{
+  "currencies": [
+    {
+      "currency": "USDT",
+      "free": 918.79880384,
+      "balance": 918.79880384,
+      "used": 0.0,
+      "bot_owned": 909.6108158016,
+      "est_stake": 918.79880384,
+      "est_stake_bot": 909.6108158016,
+      "stake": "USDT",
+      "side": "long",
+      "is_position": false,
+      "position": 0.0,
+      "is_bot_managed": true
+    }
+  ],
+  "total": 918.79880384,
+  "value": 918.770321077081,
+  "starting_capital": 990.0,
+  "starting_capital_pct": -8.12
+}
+}

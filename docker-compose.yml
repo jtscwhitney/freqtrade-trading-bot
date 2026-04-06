@@ -21,7 +21,7 @@ services:
     container_name: freqtrade
     restart: unless-stopped
     
-    # --- PORTS ---
+    # --- PORTS ----
     # 8080: API/WebUI
     # 5555: ZMQ (The "Mouth" for the Sniper)
     ports:
