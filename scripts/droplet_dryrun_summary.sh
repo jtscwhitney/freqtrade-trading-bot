@@ -158,7 +158,7 @@ echo ","
 
 # --- FreqAI model info (last training) ---
 echo '"freqai_info":'
-curl -s $AUTH "${HOST}/api/v1/freqai/Oracle_Surfer_DryRun/BTC%2FUSDT%3AUSDT" 2>/dev/null | python3 -c "
+curl -s $AUTH "${HOST}/api/v1/freqai/Oracle_Surfer_v14_DryRun/BTC%2FUSDT%3AUSDT" 2>/dev/null | python3 -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
